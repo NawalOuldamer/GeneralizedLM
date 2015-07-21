@@ -7,7 +7,7 @@
 package nl.uva.generalinzedlm;
 
 import java.util.ArrayList;
-import nl.uva.expose.lm.LanguageModel;
+import nl.uva.lm.LanguageModel;
 import nl.uva.lucenefacility.IndexInfo;
 import org.apache.lucene.index.IndexReader;
 

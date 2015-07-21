@@ -7,10 +7,9 @@ package nl.uva.generalinzedlm;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map.Entry;
-import nl.uva.expose.lm.CollectionSLM;
-import nl.uva.expose.lm.LanguageModel;
-import nl.uva.expose.lm.StandardLM;
+import nl.uva.lm.CollectionSLM;
+import nl.uva.lm.LanguageModel;
+import nl.uva.lm.StandardLM;
 
 /**
  *
