@@ -1,6 +1,7 @@
 *target/*
 */target/*
-*ExPoSeDaTa/*
+*DaTa/*
+*/DaTa/*
 */log/*
 nbactions.xml
 Config.properties

@@ -1,7 +1,6 @@
 package nl.uva.lucenefacility;
 
 import java.io.FileNotFoundException;
-import java.io.Reader;
 import java.util.ArrayList;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.AnalyzerWrapper;
@@ -10,15 +9,12 @@ import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.LowerCaseFilter;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.analysis.core.StopFilter;
-import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.en.PorterStemFilter;
 import org.apache.lucene.analysis.miscellaneous.WordDelimiterFilter;
-import org.apache.lucene.analysis.snowball.SnowballFilter;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.standard.StandardFilter;
 import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.analysis.util.CharTokenizer;
-import org.tartarus.snowball.ext.DutchStemmer;
 
 /**
  *
@@ -43,9 +39,6 @@ public class MyAnalyzer {
         this.stopwordRemooving = false;
         this.steming = steming;
     }
-        //////
-
-    //
 
     
     public Analyzer ArbitraryCharacterAsDelimiterAnalyzer(final Character delimiter) {
@@ -178,101 +171,17 @@ public class MyAnalyzer {
             };
     }
 
-    public Analyzer MyDutchAnalizer() {
-        if (steming && stopwordRemooving) {
-            return new AnalyzerWrapper(Analyzer.PER_FIELD_REUSE_STRATEGY) {
-                @Override
-                protected Analyzer getWrappedAnalyzer(String string) {
-                    return new StandardAnalyzer();
-                }
-
-                @Override
-                protected Analyzer.TokenStreamComponents wrapComponents(String fieldName, Analyzer.TokenStreamComponents tsc) {
-                    TokenStream tokenStream = new StandardFilter(tsc.getTokenStream());
-                    tokenStream = new LowerCaseFilter(tokenStream);
-//                    tokenStream = new DutchStemFilter(tokenStream);
-                    tokenStream = new SnowballFilter(tokenStream, new DutchStemmer());
-                    tokenStream = new StopFilter(tokenStream, stopList);
-                    return new StandardAnalyzer.TokenStreamComponents(tsc.getTokenizer(), tokenStream);
-                }
-            };
-        } else if (!steming && stopwordRemooving) {
-            return new AnalyzerWrapper(Analyzer.PER_FIELD_REUSE_STRATEGY) {
-                @Override
-                protected Analyzer getWrappedAnalyzer(String string) {
-                    return new StandardAnalyzer();
-                }
-
-                @Override
-                protected Analyzer.TokenStreamComponents wrapComponents(String fieldName, Analyzer.TokenStreamComponents tsc) {
-
-                    TokenStream tokenStream = new StandardFilter(tsc.getTokenStream());
-                    tokenStream = new LowerCaseFilter(tokenStream);
-                    tokenStream = new StopFilter(tokenStream, stopList);
-                    return new StandardAnalyzer.TokenStreamComponents(tsc.getTokenizer(), tokenStream);
-                }
-            };
-        } else if (steming && !stopwordRemooving) {
-            return new AnalyzerWrapper(Analyzer.PER_FIELD_REUSE_STRATEGY) {
-                @Override
-                protected Analyzer getWrappedAnalyzer(String string) {
-                    return new StandardAnalyzer();
-                }
-
-                @Override
-                protected Analyzer.TokenStreamComponents wrapComponents(String fieldName, Analyzer.TokenStreamComponents tsc) {
-
-                    TokenStream tokenStream = new StandardFilter(tsc.getTokenStream());
-                    tokenStream = new LowerCaseFilter(tokenStream);
-                    tokenStream = new SnowballFilter(tokenStream, new DutchStemmer());
-                    return new StandardAnalyzer.TokenStreamComponents(tsc.getTokenizer(), tokenStream);
-                }
-            };
-        }
-//        return new StandardAnalyzer();
-//        return new AnalyzerWrapper() {
-//                @Override
-//                protected Analyzer getWrappedAnalyzer(String string) {
-//                    CharArrayMap<String> m = new CharArrayMap<String>(Version.LUCENE_CURRENT, 0, false);
-//                    return new DutchAnalyzer(Version.LUCENE_CURRENT,  DutchAnalyzer.getDefaultStopSet()
-//                            ,  new CharArraySet(new ArrayList<String>(), true), m);
-//                }
-//
-//                @Override
-//                protected Analyzer.TokenStreamComponents wrapComponents(String fieldName, Analyzer.TokenStreamComponents tsc) {
-//
-//                    TokenStream tokenStream = new StandardFilter(tsc.getTokenStream());
-//                    tokenStream = new LowerCaseFilter(tokenStream);
-//                    tokenStream = new StopFilter(tokenStream, DutchAnalyzer.getDefaultStopSet());
-//                    return new DutchAnalyzer.TokenStreamComponents(tsc.getTokenizer(), tokenStream);
-//                }
-//            };
-        return new AnalyzerWrapper(Analyzer.PER_FIELD_REUSE_STRATEGY) {
-                @Override
-                protected Analyzer getWrappedAnalyzer(String string) {
-                    return new StandardAnalyzer();
-                }
-
-                @Override
-                protected Analyzer.TokenStreamComponents wrapComponents(String fieldName, Analyzer.TokenStreamComponents tsc) {
-
-                    TokenStream tokenStream = new StandardFilter(tsc.getTokenStream());
-                    tokenStream = new LowerCaseFilter(tokenStream);
-//                    tokenStream = new StopFilter(tokenStream, DutchAnalyzer.getDefaultStopSet());
-                    return new StandardAnalyzer.TokenStreamComponents(tsc.getTokenizer(), tokenStream);
-                }
-            };
-    }
-
-    public Analyzer getAnalyzer(String Language) throws FileNotFoundException {
-        Analyzer analyzer = new SimpleAnalyzer();
-        if (Language.equalsIgnoreCase("EN")) {
+    public Analyzer getAnalyzer(String Language) throws FileNotFoundException, Throwable {
+        Analyzer analyzer =  null; //new SimpleAnalyzer();
+        if (Language.equalsIgnoreCase("EN"))
             analyzer = MyEnglishAnalizer();
-        } else if (Language.equalsIgnoreCase("NL")) {
-            analyzer = MyDutchAnalizer();
+        
+        if(analyzer == null){
+            Throwable ex = new Throwable("Language is not set correctly in the config file...");
+            throw ex;
         }
         return analyzer;
 
     }
-
 }
+

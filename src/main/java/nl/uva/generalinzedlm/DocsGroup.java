@@ -6,6 +6,7 @@
 
 package nl.uva.generalinzedlm;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import nl.uva.lm.LanguageModel;
 import nl.uva.lucenefacility.IndexInfo;
@@ -30,6 +31,15 @@ public class DocsGroup {
         this.docs = docs;
         this.field = field;
         this.iInfo = new IndexInfo(this.iReader);
+    }
+    
+    public LanguageModel getDocsGroupGLM() throws IOException{
+        if(this.groupGLM!=null)
+            return this.groupGLM;
+        
+        GroupGLM gGLM = new GroupGLM(this);
+        this.groupGLM = new LanguageModel(gGLM.getModel());
+        return this.groupGLM;
     }
     
     

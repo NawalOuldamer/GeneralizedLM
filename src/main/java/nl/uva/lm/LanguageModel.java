@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +51,10 @@ public class LanguageModel {
     
     public void setProb(String term, Double prob){
        this.LanguageModel.put(term, prob);
+    }
+    
+    public void removeTerm(String term){
+        this.LanguageModel.remove(term);
     }
     
     public void setModel(HashMap<String, Double> lm){
@@ -138,6 +141,11 @@ public class LanguageModel {
     public List<Map.Entry<String, Double>> getSorted() {
         List<Map.Entry<String, Double>> sorted = sortByValues(LanguageModel, false);
         return sorted;
+    }
+
+
+    public void erase() {
+        this.LanguageModel = new HashMap<>();
     }
 
 }
