@@ -19,21 +19,25 @@ import org.apache.lucene.store.FSDirectory;
  *
  * @author Mostafa Dehghani
  */
-public class CalculateGLM {
-    private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CalculateGLM.class.getName());
+public class CalculateLM {
+    private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CalculateLM.class.getName());
     
     public static void main(String[] args) throws IOException {
         ArrayList<Integer> docsList = new ArrayList<>();
 //        for(int i=10061;i<11061;i++)
-        for(int i=10061;i<10072;i++)
+//        for(int i=10061;i<10072;i++)
+        for(int i=0;i<2;i++)
             docsList.add(i);
         String indexPathString = configFile.getProperty("INDEX_PATH");
         Path ipath = FileSystems.getDefault().getPath(indexPathString);
         IndexReader ireader = DirectoryReader.open(FSDirectory.open(ipath));
         
         DocsGroup dGroup = new DocsGroup(ireader, "TEXT", docsList);
-        System.out.println(dGroup.getDocsGroupGLM().getTopK(20));
-        
+//        System.out.println("CLM" + dGroup.getCollectionLM().getTopK(20));
+        System.out.println("STLM" + dGroup.getGroupStandardLM().getTopK(20));
+//        System.out.println("SPLM" + dGroup.getGroupSpecificLM().getTopK(20));
+        System.out.println("PLM" + dGroup.getGroupParsimoniouseLM().getTopK(20));
+        System.out.println("GLM" + dGroup.getGroupGeneralizedLM().getTopK(20));   
     }
 
 }

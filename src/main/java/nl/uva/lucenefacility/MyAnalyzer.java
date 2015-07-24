@@ -1,16 +1,21 @@
 package nl.uva.lucenefacility;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.AnalyzerWrapper;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.core.LowerCaseFilter;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.analysis.core.StopFilter;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.en.PorterStemFilter;
+import org.apache.lucene.analysis.miscellaneous.StemmerOverrideFilter;
 import org.apache.lucene.analysis.miscellaneous.WordDelimiterFilter;
+import org.apache.lucene.analysis.standard.ClassicAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.standard.StandardFilter;
 import org.apache.lucene.analysis.util.CharArraySet;
@@ -127,7 +132,7 @@ public class MyAnalyzer {
             return new AnalyzerWrapper(Analyzer.PER_FIELD_REUSE_STRATEGY) {
                 @Override
                 protected Analyzer getWrappedAnalyzer(String string) {
-                    return new StandardAnalyzer();
+                    return new WhitespaceAnalyzer();
                 }
 
                 @Override
@@ -136,39 +141,11 @@ public class MyAnalyzer {
                     TokenStream tokenStream = new StandardFilter(tsc.getTokenStream());
                     tokenStream = new LowerCaseFilter(tokenStream);
                     tokenStream = new PorterStemFilter(tokenStream);
-                    return new StandardAnalyzer.TokenStreamComponents(tsc.getTokenizer(), tokenStream);
+                    return new WhitespaceAnalyzer.TokenStreamComponents(tsc.getTokenizer(), tokenStream);
                 }
             };
         }
-        //return new StandardAnalyzer();
-         return new AnalyzerWrapper(Analyzer.PER_FIELD_REUSE_STRATEGY) {
-                @Override
-                protected Analyzer getWrappedAnalyzer(String string) {
-                    return new StandardAnalyzer();
-                }
-
-                @Override
-                protected Analyzer.TokenStreamComponents wrapComponents(String fieldName, Analyzer.TokenStreamComponents tsc) {
-
-                    TokenStream tokenStream = new StandardFilter(tsc.getTokenStream());
-                    tokenStream = new LowerCaseFilter(tokenStream);
-                    
-//                    //Empty list for stopwords:
-//                    tokenStream = new StopFilter(tokenStream, new CharArraySet(new ArrayList<String>(), true));
-//                    
-//                     //Empty dictionary for stemming:
-//                    StemmerOverrideFilter.StemmerOverrideMap map = null;
-//                    StemmerOverrideFilter.Builder sofb = new StemmerOverrideFilter.Builder();
-//                    try {
-//                         map = sofb.build();
-//                    } catch (IOException ex) {
-//                        log.error(ex);
-//                    }
-//                    tokenStream = new StemmerOverrideFilter(tokenStream,map); 
-   
-                    return new StandardAnalyzer.TokenStreamComponents(tsc.getTokenizer(), tokenStream);
-                }
-            };
+        return new WhitespaceAnalyzer();
     }
 
     public Analyzer getAnalyzer(String Language) throws FileNotFoundException, Throwable {

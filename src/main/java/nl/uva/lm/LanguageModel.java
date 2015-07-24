@@ -62,7 +62,11 @@ public class LanguageModel {
     }
     
     public HashMap<String, Double> getModel(){
-        return this.LanguageModel;
+        return new HashMap<String, Double>(this.LanguageModel);
+    }
+    
+   public LanguageModel cloneModel(){
+        return new LanguageModel(this.LanguageModel);
     }
 
     public Integer getSize(){
