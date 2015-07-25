@@ -17,21 +17,21 @@ public class GroupGLM extends LanguageModel { //p(theta_r|t)
 
     private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GroupGLM.class.getName());
 
-//    private Character[] models = {'r', 's', 'g'};
-    private Character[] models = {'r','g'};
 
-    private final LanguageModel generalLM;  // Theta_g
-    private final LanguageModel specificLM;  // Theta_s
-
+    private final Integer relavanceModelIndex = 0;
+    
     private final HashMap<Integer, LanguageModel> docsTermVectors;
 
     //For each Model, for each document, for each term
-    private HashMap<Character, HashMap<Integer, LanguageModel>> modelSelectionProb; // p(X_{d,t} = x )| x \in {s,g,r}
+    private HashMap<Integer, HashMap<Integer, LanguageModel>> modelSelectionProb; // p(X_{d,t} = x )| x \in {s,g,r}
     //Note: Language Model here does not mean a probabilistic Language Model, it is only uses as the data structure
 
     //For each model, for each document
-    private HashMap<Character, HashMap<Integer, Double>> lambda_X_d; // Lambda_x = p(\theta_x|d) --> Coefficient of each model in each document
-
+    private HashMap<Integer, HashMap<Integer, Double>> lambda_X_d; // Lambda_x = p(\theta_x|d) --> Coefficient of each model in each document
+    
+    //For each model, for each term
+    private HashMap<Integer, LanguageModel> models; 
+    
     private DocsGroup group;
     private Integer numberOfItereation = 100;
 
@@ -45,24 +45,21 @@ public class GroupGLM extends LanguageModel { //p(theta_r|t)
             this.docsTermVectors.put(id, tv);
         }
 
+        //Initializing Models:
+        this.models = new HashMap<>();
         //Relavance Model
-        this.setModel(this.group.getGroupStandardLM().getModel());
-//        log.info("Relevance model is initialized (with slm)....");
-
+        this.models.put(this.relavanceModelIndex,this.group.getGroupStandardLM().cloneModel());
         //General Model
-        this.generalLM = this.group.getCollectionLM();
-//        log.info("General model is initialized....");
-
+        this.models.put(1,this.group.getCollectionLM());
         //Specific Model
-        this.specificLM = this.group.getGroupSpecificLM();
-//        log.info("Specific model is initialized....");
+        this.models.put(2,this.group.getGroupSpecificLM());
 
         //Initializing  lambda_X_d
         lambda_X_d = new HashMap<>();
-        for (Character m : models) {
+        for (Integer m : models.keySet()) {
             HashMap<Integer, Double> docsHM = new HashMap<>();
             for (int id : group.docs) {
-                docsHM.put(id, 1.0 / 3);
+                docsHM.put(id, 1.0 / models.size());
             }
             lambda_X_d.put(m, docsHM);
         }
@@ -72,24 +69,15 @@ public class GroupGLM extends LanguageModel { //p(theta_r|t)
         this.CalculateGLM();
     }
 
-    private LanguageModel getModelById(Character m) {
-        if (m.equals('s')) {
-            return this.specificLM;
-        } else if (m.equals('g')) {
-            return this.generalLM;
-        } else {
-            return this;
-        }
-    }
 
     private void E_step() {
         this.modelSelectionProb = new HashMap<>();
-        for (Character m : models) {
+        for (Integer m : models.keySet()) {
             HashMap<Integer, LanguageModel> docsHM = new HashMap<>();
             for (Integer id : this.group.docs) {
                 LanguageModel lm = new LanguageModel();
                 for (String term : this.docsTermVectors.get(id).getTerms()) {
-                    Double prob = this.getModelById(m).getProb(term);
+                    Double prob = this.models.get(m).getProb(term);
                     Double lambda = this.lambda_X_d.get(m).get(id);
                     Double selectionProb = prob * lambda / this.Get_E_step_denominator(id, term);
                     lm.setProb(term, selectionProb);
@@ -102,8 +90,8 @@ public class GroupGLM extends LanguageModel { //p(theta_r|t)
 
     private Double Get_E_step_denominator(Integer did, String term) {
         Double denominator = 0D;
-        for (Character m : models) {
-            Double prob = this.getModelById(m).getProb(term);
+        for (Integer m : models.keySet()) {
+            Double prob = this.models.get(m).getProb(term);
             Double lambda = this.lambda_X_d.get(m).get(did);
             denominator += prob * lambda;
         }
@@ -113,10 +101,10 @@ public class GroupGLM extends LanguageModel { //p(theta_r|t)
     private void M_step() {
 
         this.lambda_X_d = new HashMap<>(); //Clear Matrix
-        Character modelToBeUpdate = 'r';
-        this.getModelById(modelToBeUpdate).erase();
+        Integer modelToBeUpdate = this.relavanceModelIndex;
+        this.models.get(modelToBeUpdate).erase();
         Double denominator_relModel = null;
-        for (Character m : models) {
+        for (Integer m : models.keySet()) {
             if (m.equals(modelToBeUpdate)) {
                 denominator_relModel = this.Get_M_step_denominator_relModel(modelToBeUpdate);
             }
@@ -128,7 +116,7 @@ public class GroupGLM extends LanguageModel { //p(theta_r|t)
                     // Updating relevance Model
                     if (m.equals(modelToBeUpdate)) {
                         Double newprob = this.Get_M_step_numerator_relModel(m, term) / denominator_relModel;
-                        this.getModelById(modelToBeUpdate).setProb(term, newprob);
+                        this.models.get(modelToBeUpdate).setProb(term, newprob);
                     }
                     // Updating Lambdas
                     Double newLambda = this.Get_M_step_numerator_Lambda(m, id) / denominator_Lambda;
@@ -139,7 +127,7 @@ public class GroupGLM extends LanguageModel { //p(theta_r|t)
         }
     }
 
-    private Double Get_M_step_numerator_relModel(Character m, String term) {
+    private Double Get_M_step_numerator_relModel(Integer m, String term) {
         Double numerator = 0D;
         HashMap<Integer, LanguageModel> docsHM = this.modelSelectionProb.get(m);
         for (Integer id : docsHM.keySet()) {
@@ -149,7 +137,7 @@ public class GroupGLM extends LanguageModel { //p(theta_r|t)
         return numerator;
     }
 
-    private Double Get_M_step_numerator_Lambda(Character m, Integer did) {
+    private Double Get_M_step_numerator_Lambda(Integer m, Integer did) {
         Double numerator = 0D;
         HashMap<Integer, LanguageModel> docsHM = this.modelSelectionProb.get(m);
         for (String term : docsHM.get(did).getTerms()) {
@@ -159,7 +147,7 @@ public class GroupGLM extends LanguageModel { //p(theta_r|t)
         return numerator;
     }
 
-    private Double Get_M_step_denominator_relModel(Character m) {
+    private Double Get_M_step_denominator_relModel(Integer m) {
         Double denominator = 0D;
         HashMap<Integer, LanguageModel> docsHM = this.modelSelectionProb.get(m);
         for (Integer id : docsHM.keySet()) {
@@ -173,7 +161,7 @@ public class GroupGLM extends LanguageModel { //p(theta_r|t)
 
     private Double Get_M_step_denominator_Lambda(Integer did) {
         Double denominator = 0D;
-        for (Character m : models) {
+        for (Integer m : models.keySet()) {
             HashMap<Integer, LanguageModel> docsHM = this.modelSelectionProb.get(m);
             for (String term : docsHM.get(did).getTerms()) {
                 Double tf = this.docsTermVectors.get(did).getProb(term);
@@ -185,11 +173,11 @@ public class GroupGLM extends LanguageModel { //p(theta_r|t)
 
     public void CalculateGLM() {
         for (int i = 0; i < this.numberOfItereation; i++) {
-//            log.info("iteration num:" + i);
-//            System.out.println(this.getTopK(20));
-            this.E_step();
-            this.M_step();
-        }
+    //            log.info("iteration num:" + i);
+    //            System.out.println(this.getTopK(20));
+                this.E_step();
+                this.M_step();
+            }
+        this.setModel(this.models.get(this.relavanceModelIndex).getModel());
     }
-
 }
