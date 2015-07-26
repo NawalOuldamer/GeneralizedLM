@@ -57,8 +57,8 @@ public class DocsGroup {
 
     public LanguageModel getGroupParsimoniouseLM() throws IOException {
         if (this.groupParsimoniouseLM == null) {
-//            this.groupParsimoniouseLM = new ParsimoniousLM(this.getGroupStandardLM(), this.getCollectionLM());
-            this.groupParsimoniouseLM = new ParsimoniousLM(this.getGroupStandardLM(), this.getGroupSpecificLM());
+            this.groupParsimoniouseLM = new ParsimoniousLM(this.getGroupStandardLM(), this.getCollectionLM());
+//            this.groupParsimoniouseLM = new ParsimoniousLM(this.getGroupStandardLM(), this.getGroupSpecificLM());
         }
         return this.groupParsimoniouseLM;
     }
@@ -83,9 +83,12 @@ public class DocsGroup {
 //                docsLMs.put(id, docPLM);
             }
             for (String term : this.getGroupStandardLM().getTerms()) {
+                Integer docFreq = 0;
                 Double probability = 0D;
                 for (int i : docsLMs.keySet()) {
                     Double joineProb = docsLMs.get(i).getProb(term);
+                    if(joineProb > 0)
+                        docFreq++;
                     for (int j : docsLMs.keySet()) {
                         if (i == j) {
                             continue;
@@ -94,7 +97,7 @@ public class DocsGroup {
                     }
                     probability += joineProb;
                 }
-                specLM.setProb(term, probability);
+                specLM.setProb(term, probability/docFreq);
             }
             this.GroupSpecificLM.setModel(specLM.getNormalizedLM());
         }
