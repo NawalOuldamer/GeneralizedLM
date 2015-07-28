@@ -115,8 +115,9 @@ public class GroupGLM extends LanguageModel { //p(theta_r|t)
                 for (String term : docsHM.get(id).getTerms()) {
                     // Updating relevance Model
                     if (m.equals(modelToBeUpdate)) {
-                        Double newprob = this.Get_M_step_numerator_relModel(m, term) / denominator_relModel;
-                        this.models.get(modelToBeUpdate).setProb(term, newprob);
+                        Double newProb = this.Get_M_step_numerator_relModel(m, term) / denominator_relModel;
+                        if(newProb > 0)
+                            this.models.get(modelToBeUpdate).setProb(term, newProb);
                     }
                     // Updating Lambdas
                     Double newLambda = this.Get_M_step_numerator_Lambda(m, id) / denominator_Lambda;

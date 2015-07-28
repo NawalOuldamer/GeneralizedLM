@@ -90,7 +90,7 @@ public final class ParsimoniousLM extends LanguageModel {
                 this.setProb(e.getKey(), newProb);
             }
         }
-        this.setModel(this.getNormalizedLM());
+        this.setModel(this.getNormalizedDestribution());
         this.tmpLM = new LanguageModel(this.getModel());
     }
 
