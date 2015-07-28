@@ -25,7 +25,7 @@ public class CalculateLM {
     public static void main(String[] args) throws IOException {
         ArrayList<Integer> docsList = new ArrayList<>();
 //        for(int i=10061;i<11061;i++)
-        for(int i=10061;i<10072;i++)
+        for(int i=10061;i<10172;i++)
 //        for(int i=0;i<2;i++)
             docsList.add(i);
         String indexPathString = configFile.getProperty("INDEX_PATH");

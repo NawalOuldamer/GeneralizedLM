@@ -24,7 +24,8 @@ public class GroupHGLM extends LanguageModel { //p(theta_r|t)
 
     private HashMap<Integer, LanguageModel> docsSLM;
     private HashMap<Integer, LanguageModel> docsHPLM;
-    private LanguageModel HGLM;
+    private LanguageModel groupHPLM;
+    private LanguageModel groupHGLM;
     private DocsGroup group;
 
     public GroupHGLM(DocsGroup group) throws IOException {
@@ -44,15 +45,15 @@ public class GroupHGLM extends LanguageModel { //p(theta_r|t)
             this.docsHPLM.put(id, hplm);
         }
         
-        this.HGLM = this.group.getGroupStandardLM().cloneModel();
+        this.groupHPLM = new ParsimoniousLM(this.group.getGroupStandardLM(),this.group.getCollectionLM());
 //        for (int id : this.group.docs) {
 //            this.HGLM  = new ParsimoniousLM(this.HGLM,this.docsHPLM.get(id));
 //        }
         Set<String> allDocTerms = new HashSet<String>();
         for(LanguageModel dlm: this.docsHPLM.values())
             allDocTerms.addAll(dlm.getTerms());
-        this.HGLM  = new ParsimoniousLM(this.HGLM,this.group.getSpecificLM(allDocTerms,docsHPLM));
+        this.groupHGLM  = new ParsimoniousLM(this.groupHPLM,this.group.getSpecificLM(allDocTerms,docsHPLM));
         
-        this.setModel(this.HGLM.getModel());
+        this.setModel(this.groupHGLM.getModel());
     }
 }
