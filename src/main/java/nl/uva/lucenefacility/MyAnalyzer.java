@@ -2,6 +2,8 @@ package nl.uva.lucenefacility;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.AnalyzerWrapper;
 import org.apache.lucene.analysis.TokenStream;
@@ -13,10 +15,13 @@ import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.en.PorterStemFilter;
 import org.apache.lucene.analysis.miscellaneous.LengthFilter;
 import org.apache.lucene.analysis.miscellaneous.WordDelimiterFilter;
+import org.apache.lucene.analysis.standard.ClassicFilter;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.standard.StandardFilter;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.analysis.util.CharTokenizer;
+import org.apache.lucene.analysis.util.FilteringTokenFilter;
 
 /**
  *
@@ -107,10 +112,9 @@ public class MyAnalyzer {
                 @Override
                 protected Analyzer.TokenStreamComponents wrapComponents(String fieldName, Analyzer.TokenStreamComponents tsc) {
                     TokenStream tokenStream = new StandardFilter(tsc.getTokenStream());
-                    tokenStream = new LowerCaseFilter(tokenStream);
+                    tokenStream = getStandardTokenStream(tokenStream);
                     tokenStream = new PorterStemFilter(tokenStream);
                     tokenStream = new StopFilter(tokenStream, stopList);
-                    tokenStream = new LengthFilter(tokenStream, tokenMinLength, tokenMaxLength);
                     return new StandardAnalyzer.TokenStreamComponents(tsc.getTokenizer(), tokenStream);
                 }
             };
@@ -123,11 +127,9 @@ public class MyAnalyzer {
 
                 @Override
                 protected Analyzer.TokenStreamComponents wrapComponents(String fieldName, Analyzer.TokenStreamComponents tsc) {
-                    Tokenizer tokenizer = new LetterTokenizer();
                     TokenStream tokenStream = new StandardFilter(tsc.getTokenStream());
-                    tokenStream = new LowerCaseFilter(tokenStream);
+                    tokenStream = getStandardTokenStream(tokenStream);
                     tokenStream = new StopFilter(tokenStream, stopList);
-                    tokenStream = new LengthFilter(tokenStream, tokenMinLength, tokenMaxLength);
                     return new StandardAnalyzer.TokenStreamComponents(tsc.getTokenizer(), tokenStream);
                 }
             };
@@ -142,14 +144,22 @@ public class MyAnalyzer {
                 protected Analyzer.TokenStreamComponents wrapComponents(String fieldName, Analyzer.TokenStreamComponents tsc) {
 
                     TokenStream tokenStream = new StandardFilter(tsc.getTokenStream());
-                    tokenStream = new LowerCaseFilter(tokenStream);
+                    tokenStream = getStandardTokenStream(tokenStream);
                     tokenStream = new PorterStemFilter(tokenStream);
-                    tokenStream = new LengthFilter(tokenStream, tokenMinLength, tokenMaxLength);
                     return new WhitespaceAnalyzer.TokenStreamComponents(tsc.getTokenizer(), tokenStream);
                 }
             };
         }
         return new WhitespaceAnalyzer();
+    }
+    
+    private TokenStream getStandardTokenStream(TokenStream tokenStream){
+        tokenStream = new LowerCaseFilter(tokenStream);
+//        tokenStream = new WordDelimiterFilter(tokenStream, WordDelimiterFilter.GENERATE_NUMBER_PARTS, null);
+//        tokenStream = new WordDelimiterFilter(tokenStream, WordDelimiterFilter.GENERATE_WORD_PARTS, null);
+        tokenStream = new LengthFilter(tokenStream, tokenMinLength, tokenMaxLength);
+//        tokenStream = new RemoveNumberFilter(tokenStream);
+        return  tokenStream;
     }
 
     public Analyzer getAnalyzer(String Language) throws FileNotFoundException, Throwable {
@@ -164,5 +174,21 @@ public class MyAnalyzer {
         }
         return analyzer;
 
+    }
+}
+
+class RemoveNumberFilter extends FilteringTokenFilter {
+
+    private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
+
+    public RemoveNumberFilter(TokenStream in) {
+        super(in);
+    }
+    @Override
+    protected boolean accept() {
+        String regex = "^[\\d,\\.]+$";//".*[^0-9].*";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(termAtt.toString());
+        return !matcher.matches();
     }
 }
