@@ -25,8 +25,8 @@ public class CalculateLM {
     public static void main(String[] args) throws IOException {
         ArrayList<Integer> docsList = new ArrayList<>();
 //        for(int i=10061;i<11061;i++)
-        for(int i=10061;i<10172;i++)
-//        for(int i=0;i<2;i++)
+//        for(int i=10061;i<10172;i++)
+        for(int i=0;i<2;i++)
             docsList.add(i);
         String indexPathString = configFile.getProperty("INDEX_PATH");
         Path ipath = FileSystems.getDefault().getPath(indexPathString);
@@ -34,17 +34,17 @@ public class CalculateLM {
         
         DocsGroup dGroup = new DocsGroup(ireader, "TEXT", docsList);
         System.out.println("CLM" + dGroup.getCollectionLM().getTopK(20));
-        System.out.println("CLM:" + dGroup.getCollectionLM().getSize());
+//        System.out.println("CLM:" + dGroup.getCollectionLM().getSize());
         System.out.println("STLM" + dGroup.getGroupStandardLM().getTopK(20));
-        System.out.println("STLM:" + dGroup.getGroupStandardLM().getSize());
+//        System.out.println("STLM:" + dGroup.getGroupStandardLM().getSize());
         System.out.println("SPLM" + dGroup.getGroupSpecificLM().getTopK(20));
-        System.out.println("SPLM:" + dGroup.getGroupSpecificLM().getSize());
+//        System.out.println("SPLM:" + dGroup.getGroupSpecificLM().getSize());
         System.out.println("PLM" + dGroup.getGroupParsimoniouseLM().getTopK(20));
-        System.out.println("PLM:" + dGroup.getGroupParsimoniouseLM().getSize());
+//        System.out.println("PLM:" + dGroup.getGroupParsimoniouseLM().getSize());
         System.out.println("GLM" + dGroup.getGroupGeneralizedLM().getTopK(20));   
-        System.out.println("GLM:" + dGroup.getGroupGeneralizedLM().getSize());   
+//        System.out.println("GLM:" + dGroup.getGroupGeneralizedLM().getSize());   
         System.out.println("HGLM" + dGroup.getGroupHGeneralizedLM().getTopK(20));   
-        System.out.println("HGLM:" + dGroup.getGroupHGeneralizedLM().getSize());   
+//        System.out.println("HGLM:" + dGroup.getGroupHGeneralizedLM().getSize());   
     }
 
 }

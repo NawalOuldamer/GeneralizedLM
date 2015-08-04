@@ -142,7 +142,21 @@ public class LanguageModel {
         return newLM;
     }
     
-      public LanguageModel getNormalizedLM(){
+
+    public HashMap<String, Double> getNormalizedEntrpy() {
+        Double summation = 0D;
+        HashMap<String, Double> newLM = new HashMap<>();
+        for (Map.Entry<String, Double> e : this.LanguageModel.entrySet()) {
+            summation += e.getValue();
+        }
+        for (Map.Entry<String, Double> e :this.LanguageModel.entrySet() ) {
+            Double newProb = e.getValue() / summation;
+            newLM.put(e.getKey(), (1-newProb));
+        }
+        return newLM;
+    }
+    
+    public LanguageModel getNormalizedLM(){
         Double summation = 0D;
         LanguageModel newLM = new LanguageModel();
         for (Map.Entry<String, Double> e : this.LanguageModel.entrySet()) {

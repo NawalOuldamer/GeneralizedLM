@@ -8,7 +8,6 @@ package nl.uva.generalinzedlm;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 import nl.uva.lm.CollectionSLM;
 import nl.uva.lm.LanguageModel;
@@ -81,7 +80,9 @@ public class DocsGroup {
         return this.CollectionLM;
     }
 
+    
     public LanguageModel getGroupSpecificLM() throws IOException {
+        
         if (this.GroupSpecificLM == null) {
             this.GroupSpecificLM = new LanguageModel();
 
@@ -121,5 +122,98 @@ public class DocsGroup {
             specLM.setProb(term, probability / docFreq);
         }
         return specLM.getNormalizedLM();
+    }
+    
+    public LanguageModel getGroupSpecificLM_idf() throws IOException {
+        if (this.GroupSpecificLM == null) {
+            this.GroupSpecificLM = new LanguageModel();
+            LanguageModel specLM = new LanguageModel();
+            HashMap<Integer, LanguageModel> docsLMs = new HashMap<>();
+            for (int id : this.docs) {
+                StandardLM docSLM = new StandardLM(this.iReader, id, this.field);
+                docsLMs.put(id, docSLM);
+            }
+            for(String term: this.getGroupStandardLM().getTerms()){
+                Double df=0D;
+                for (int id : this.docs) {
+                    if(docsLMs.get(id).getProb(term)>0)
+                        df++;
+                }
+                specLM.setProb(term, df);
+            }
+            this.GroupSpecificLM.setModel(specLM.getNormalizedDestribution());
+         }
+          
+        return this.GroupSpecificLM;
+    }
+    
+        public LanguageModel getGroupSpecificLM_Entropy1() throws IOException {
+        if (this.GroupSpecificLM == null) {
+            this.GroupSpecificLM = new LanguageModel();
+            LanguageModel specLM = new LanguageModel();
+            HashMap<Integer, LanguageModel> docsLMs = new HashMap<>();
+            for (int id : this.docs) {
+                StandardLM docSLM = new StandardLM(this.iReader, id, this.field);
+                docsLMs.put(id, docSLM);
+            }
+            for(String term: this.getGroupStandardLM().getTerms()){
+                Double entopy=0D;
+                for (int id : this.docs) {
+                    if(docsLMs.get(id).getProb(term)>0){
+                        Double tProb = docsLMs.get(id).getProb(term);
+                        entopy += tProb * Math.log(tProb);
+                    }
+                }
+                specLM.setProb(term, -1 * entopy);
+            }
+            
+            this.GroupSpecificLM.setModel(new LanguageModel(specLM.getNormalizedEntrpy()).getNormalizedDestribution());
+//            this.GroupSpecificLM.setModel(specLM.getNormalizedDestribution());
+         }
+        return this.GroupSpecificLM;
+    }
+    
+    
+    public LanguageModel getGroupSpecificLM_Entropy2() throws IOException {
+        if (this.GroupSpecificLM == null) {
+            this.GroupSpecificLM = new LanguageModel();
+            
+            LanguageModel specLM = new LanguageModel();
+            HashMap<Integer, LanguageModel> docsLMs = new HashMap<>();
+            HashMap<Integer, LanguageModel> docsLMs_tmp = new HashMap<>();
+            for (int id : this.docs) {
+                StandardLM docSLM = new StandardLM(this.iReader, id, this.field);
+                docsLMs.put(id, docSLM);
+            }
+            LanguageModel tmpLM = new LanguageModel();
+            for (int i : docsLMs.keySet()) {
+                for (String term : docsLMs.get(i).getTerms()) {
+                        Double joineProb = docsLMs.get(i).getProb(term);
+                        for (int j : docsLMs.keySet()) {
+                            if (i == j) {
+                                continue;
+                            }
+                            joineProb = joineProb * (1 - docsLMs.get(j).getProb(term));
+                        }
+                        tmpLM.setProb(term, joineProb);
+                    }
+                docsLMs_tmp.put(i, tmpLM.getNormalizedLM());
+            }
+            for(String term: this.getGroupStandardLM().getTerms()){
+                Double entopy=0D;
+                for (int id : this.docs) {
+                    if(docsLMs_tmp.get(id).getProb(term)>0){
+                        Double tProb = docsLMs_tmp.get(id).getProb(term);
+                        entopy += tProb * Math.log(tProb);
+                    }
+                }
+                specLM.setProb(term, -1 * entopy);
+            }
+            
+            this.GroupSpecificLM.setModel(new LanguageModel(specLM.getNormalizedEntrpy()).getNormalizedDestribution());
+//            this.GroupSpecificLM.setModel(specLM.getNormalizedDestribution());
+         }
+          
+        return this.GroupSpecificLM;
     }
 }

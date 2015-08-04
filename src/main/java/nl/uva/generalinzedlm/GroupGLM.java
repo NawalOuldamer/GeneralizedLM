@@ -33,7 +33,7 @@ public class GroupGLM extends LanguageModel { //p(theta_r|t)
     private HashMap<Integer, LanguageModel> models; 
     
     private DocsGroup group;
-    private Integer numberOfItereation = 100;
+    private Integer numberOfItereation = 10;
 
     public GroupGLM(DocsGroup group) throws IOException {
         this.group = group;
@@ -59,6 +59,12 @@ public class GroupGLM extends LanguageModel { //p(theta_r|t)
         for (Integer m : models.keySet()) {
             HashMap<Integer, Double> docsHM = new HashMap<>();
             for (int id : group.docs) {
+//                if(m==0)
+//                    docsHM.put(id, 0.1D);
+//                if(m==1)
+//                    docsHM.put(id, 0.3D);
+//                if(m==2)
+//                    docsHM.put(id, 0.6D);
                 docsHM.put(id, 1.0 / models.size());
             }
             lambda_X_d.put(m, docsHM);
@@ -174,8 +180,8 @@ public class GroupGLM extends LanguageModel { //p(theta_r|t)
 
     public void CalculateGLM() {
         for (int i = 0; i < this.numberOfItereation; i++) {
-    //            log.info("iteration num:" + i);
-    //            System.out.println(this.getTopK(20));
+//                System.out.println("iteration num:" + i);
+//                System.out.println(this.models.get(this.relavanceModelIndex).getTopK(20));
                 this.E_step();
                 this.M_step();
             }

@@ -155,10 +155,10 @@ public class MyAnalyzer {
     
     private TokenStream getStandardTokenStream(TokenStream tokenStream){
         tokenStream = new LowerCaseFilter(tokenStream);
-//        tokenStream = new WordDelimiterFilter(tokenStream, WordDelimiterFilter.GENERATE_NUMBER_PARTS, null);
-//        tokenStream = new WordDelimiterFilter(tokenStream, WordDelimiterFilter.GENERATE_WORD_PARTS, null);
+        tokenStream = new WordDelimiterFilter(tokenStream, WordDelimiterFilter.GENERATE_NUMBER_PARTS, null);
+        tokenStream = new WordDelimiterFilter(tokenStream, WordDelimiterFilter.GENERATE_WORD_PARTS, null);
         tokenStream = new LengthFilter(tokenStream, tokenMinLength, tokenMaxLength);
-//        tokenStream = new RemoveNumberFilter(tokenStream);
+        tokenStream = new RemoveNumberFilter(tokenStream);
         return  tokenStream;
     }
 
